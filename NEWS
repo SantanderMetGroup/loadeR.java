@@ -1,6 +1,0 @@
-# NEWS
-
-## v1.1-0
- * In-house netCDF-Java version for http authentication
-## v1.1.1
- * Update java version checker to comply with java >=9  (See Issue loadeR#33 https://github.com/SantanderMetGroup/loadeR/issues/33)
