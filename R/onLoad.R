@@ -1,19 +1,30 @@
 #' @importFrom rJava .jpackage
 
 .onLoad <- function(libname, pkgname) {
-      # Read custom memory option (if it exists)
-      mem_option <- getOption("loadeR.java.memory") 
-
-      # Read JAVA_TOOL_OPTIONS environment variable (if it exists)
-      mem_env  <- Sys.getenv("JAVA_TOOL_OPTIONS", unset = "")  
-
-      # Set memory value (-Xmx2g as default)
-      mem_value  <- if (!is.null(mem_option)) mem_option else if (nzchar(mem_env)) mem_env else "-Xmx2g" 
+      # Get the current java.parameters
+      current_params <- getOption("java.parameters", default = "")
       
-      # Configure java.parameters if JVM not yet initialized
-      if (!rJava::.jniInitialized) {
-            options(java.parameters = mem_value)
+          # Check if "-Xmx" is already present
+      xmx_index <- grep("-Xmx[0-9]+[mMgG]", current_params)
+      if (length(xmx_index) > 0) {
+            # Extract the current -Xmx value
+            current_xmx <- sub("-Xmx([0-9]+[mMgG])", "\\1", current_params[xmx_index])
+            # Convert to numeric value in gigabytes
+            current_xmx_gb <- as.numeric(sub("[mMgG]", "", current_xmx)) / ifelse(grepl("[mM]", current_xmx), 1024, 1)
+            # Replace with "-Xmx2g" if the current value is less than 2g
+            if (!is.na(current_xmx_gb) && current_xmx_gb < 2) {
+                  current_params[xmx_index] <- "-Xmx2g"
+            }
       } else {
+            # Add "-Xmx2g" if no -Xmx is present
+            current_params <- c(current_params, "-Xmx2g")
+      }
+      
+      # Update java.parameters
+      options(java.parameters = current_params)
+      
+      # Warn if JVM is already initialized
+      if (rJava::.jniInitialized) {
             warning("JVM is already initialized; java.parameters could not be set.")
       }
 
@@ -22,10 +33,4 @@
       
       # Initialize rJava and add all JARs in the 'java' directory to the classpath
       rJava::.jpackage(pkgname, lib.loc = dirname(java_path))
-
-      # Report JVM maximum memory 
-      runtime <- rJava::.jcall("java/lang/Runtime", "Ljava/lang/Runtime;", "getRuntime")
-      max_mem_bytes <- rJava::.jcall(runtime, "J", "maxMemory")
-      max_mem_gb <- round(max_mem_bytes / (1024^3), 2)
-      packageStartupMessage(sprintf("The maximum JVM heap space available is: %.2f GB", max_mem_gb))
 }
