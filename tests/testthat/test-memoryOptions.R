@@ -8,7 +8,7 @@ test_that("loadeR.java respects 4GB memory via options()", {
     })
 
     # Check that the captured messages include "JVM maximum memory: 4.00 GB"
-    expect_true(any(grepl("JVM maximum memory:\\s*4\\.00\\s*GB", result)))
+    expect_true(any(grepl("The maximum JVM heap space available is:\\s*4\\.00\\s*GB", result)))
 })
 
 test_that("loadeR.java respects 4GB memory via JAVA_TOOL_OPTIONS", {
@@ -19,5 +19,5 @@ test_that("loadeR.java respects 4GB memory via JAVA_TOOL_OPTIONS", {
     }, env = c(JAVA_TOOL_OPTIONS = "-Xmx4g"))
 
     # Check that the captured messages include "JVM maximum memory: 4.00 GB"
-    expect_true(any(grepl("JVM maximum memory:\\s*4\\.00\\s*GB", result)))
+    expect_true(any(grepl("The maximum JVM heap space available is:\\s*4\\.00\\s*GB", result)))
 })

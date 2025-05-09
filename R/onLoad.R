@@ -27,5 +27,5 @@
       runtime <- rJava::.jcall("java/lang/Runtime", "Ljava/lang/Runtime;", "getRuntime")
       max_mem_bytes <- rJava::.jcall(runtime, "J", "maxMemory")
       max_mem_gb <- round(max_mem_bytes / (1024^3), 2)
-      message(sprintf("JVM maximum memory: %.2f GB", max_mem_gb))
+      packageStartupMessage(sprintf("The maximum JVM heap space available is: %.2f GB", max_mem_gb))
 }
