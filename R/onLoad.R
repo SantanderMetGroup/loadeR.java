@@ -4,7 +4,7 @@
       # Get the current java.parameters
       current_params <- getOption("java.parameters", default = "")
       
-          # Check if "-Xmx" is already present
+      # Check if "-Xmx" is already present
       xmx_index <- grep("-Xmx[0-9]+[mMgG]", current_params)
       if (length(xmx_index) > 0) {
             # Extract the current -Xmx value
@@ -30,7 +30,10 @@
 
       # Get the correct path to the 'java' directory inside the package
       java_path <- system.file("java", package = pkgname)
-      
-      # Initialize rJava and add all JARs in the 'java' directory to the classpath
-      rJava::.jpackage(pkgname, lib.loc = dirname(java_path))
+
+      # Get path to all JAR files in the 'java' directory 
+      jar_files <- list.files(java_path, pattern = "\\.jar$", full.names = TRUE)
+
+      # Force JVM initialization with JAR classpath if not already done 
+      if (!rJava::.jniInitialized) rJava::.jinit(classpath = jar_files)
 }

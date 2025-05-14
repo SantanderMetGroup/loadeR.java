@@ -14,39 +14,42 @@
         max_mem_gb <- round(max_mem_bytes / (1024^3), 2)
         packageStartupMessage(sprintf("The maximum JVM heap space available is: %.2f GB", max_mem_gb))
 
-        # Parse MANIFEST.MF using java.util.jar.Manifest
-        jar_path <- system.file("java", "netcdfAll-4.6.0-SNAPSHOT.jar", package = "loadeR.java")
-        if (file.exists(jar_path)) {
-            manifest_info <- tryCatch({
-                # Load the JAR file
-                jar_file <- rJava::.jnew("java/util/jar/JarFile", jar_path)
-                manifest <- rJava::.jcall(jar_file, "Ljava/util/jar/Manifest;", "getManifest")
-                attributes <- rJava::.jcall(manifest, "Ljava/util/jar/Attributes;", "getMainAttributes")
-                
-                # Extract specific fields
-                fields <- c("Implementation-Version", "Built-On", "Build-Jdk")
-                extracted_fields <- lapply(fields, function(field) {
-                    value <- rJava::.jcall(attributes, "Ljava/lang/String;", "getValue", field)
-                    if (!is.null(value)) value else NA
-                })
-                names(extracted_fields) <- fields
-                
-                # Save extracted fields in package options
-                options(loadeR.java.manifest = extracted_fields)
-                extracted_fields
-            }, error = function(e) {
-                packageStartupMessage("Could not read MANIFEST.MF from JAR:", e$message)
-                NULL
+        # Use ClassLoader to access MANIFEST.MF
+        manifest_info <- tryCatch({
+            # Load NetcdfFile class loader
+            netcdf_class <- rJava::.jfindClass("ucar/nc2/NetcdfFile")
+            class_loader <- rJava::.jcall(netcdf_class, "Ljava/lang/ClassLoader;", "getClassLoader")
+            manifest_url <- rJava::.jcall(class_loader, "Ljava/net/URL;", "getResource", "META-INF/MANIFEST.MF")
+
+            if (rJava::is.jnull(manifest_url)) stop("MANIFEST.MF not found via NetcdfFile class loader")
+
+            input_stream <- rJava::.jcall(manifest_url, "Ljava/io/InputStream;", "openStream")
+            manifest <- rJava::.jnew("java/util/jar/Manifest", input_stream)
+            attributes <- rJava::.jcall(manifest, "Ljava/util/jar/Attributes;", "getMainAttributes")
+
+            # Extract specific fields
+            fields <- c("Implementation-Version", "Built-On", "Build-Jdk")
+            extracted_fields <- lapply(fields, function(field) {
+                value <- rJava::.jcall(attributes, "Ljava/lang/String;", "getValue", field)
+                if (!is.null(value)) value else NA
             })
-            
-        } else {
-            packageStartupMessage("Warning: netCDF JAR not found at expected location.")
+            names(extracted_fields) <- fields
+
+            # Save extracted fields in package options
+            options(loadeR.java.manifest = extracted_fields)
+            extracted_fields
+        }, error = function(e) {
+            packageStartupMessage("Could not read MANIFEST.MF via class loader:", e$message)
+            NULL
+        })
+
+        if (!is.null(manifest_info)) {
+            packageStartupMessage(sprintf(
+                "NetCDF Java Library Version: %s (Built-On: %s) loaded and ready",
+                manifest_info[["Implementation-Version"]],
+                manifest_info[["Built-On"]]
+            ))
         }
-        packageStartupMessage(sprintf(
-            "NetCDF Java Library Version: %s (Built-On: %s) loaded and ready", 
-            manifest_info[["Implementation-Version"]],
-            manifest_info[["Built-On"]]
-        ))
 
     }
     J("java.util.logging.Logger")$getLogger("")$setLevel(J("java.util.logging.Level")$SEVERE)
