@@ -4,3 +4,8 @@
  * In-house netCDF-Java version for http authentication
 ## v1.1.1
  * Update java version checker to comply with java >=9  (See Issue loadeR#33 https://github.com/SantanderMetGroup/loadeR/issues/33)
+## v1.2.0
+ * Enhanced JVM initialization with configurable heap memory.
+ * Class loader support for reading JAR metadata at load time.
+ * Add test for Java-R interface functions (javaCalendarDate2rPOSIXlt, javaString2rChar).
+ * Updated documentation with memory configuration instructions.
