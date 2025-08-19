@@ -52,6 +52,14 @@
         }
 
     }
+
+    # Show the source of the netCDF-Java classpath used
+    cp_source <- getOption("loadeR.netcdf_java_classpath_source")
+    cp_msg <- getOption("loadeR.netcdf_java_classpath_msg")
+    if (!is.null(cp_source) && !is.null(cp_msg)) {
+        packageStartupMessage(sprintf("netCDF-Java CLASSPATH from %s: %s", cp_msg, cp_source))
+    }
+    
     J("java.util.logging.Logger")$getLogger("")$setLevel(J("java.util.logging.Level")$SEVERE)
 } 
 
