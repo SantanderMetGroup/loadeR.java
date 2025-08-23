@@ -13,6 +13,9 @@
         max_mem_bytes <- rJava::.jcall(runtime, "J", "maxMemory")
         max_mem_gb <- round(max_mem_bytes / (1024^3), 2)
         packageStartupMessage(sprintf("The maximum JVM heap space available is: %.2f GB", max_mem_gb))
+        
+        # Get forced netcdf version
+        forced <- getOption("loadeR.java.forced_version", "")
 
         # Use ClassLoader to access MANIFEST.MF
         manifest_info <- tryCatch({
@@ -21,7 +24,19 @@
             class_loader <- rJava::.jcall(netcdf_class, "Ljava/lang/ClassLoader;", "getClassLoader")
             manifest_url <- rJava::.jcall(class_loader, "Ljava/net/URL;", "getResource", "META-INF/MANIFEST.MF")
 
-            if (rJava::is.jnull(manifest_url)) stop("MANIFEST.MF not found via NetcdfFile class loader")
+            if (rJava::is.jnull(manifest_url)) {
+                if (nzchar(forced)) {
+                    packageStartupMessage(sprintf(
+                        "NetCDF Java Library Forced Version: %s",
+                        forced
+                    ))
+                } else {
+                    packageStartupMessage(
+                        "NetCDF Java Library version could not be detected. You can set it manually via R option before loading the package"
+                    )
+                }
+                stop("MANIFEST.MF not found via NetcdfFile class loader")
+            }
 
             input_stream <- rJava::.jcall(manifest_url, "Ljava/io/InputStream;", "openStream")
             manifest <- rJava::.jnew("java/util/jar/Manifest", input_stream)
@@ -35,11 +50,11 @@
             })
             names(extracted_fields) <- fields
 
-            # Save extracted fields in package options
-            options(loadeR.java.manifest = extracted_fields)
+            # Save netcdf version 
+            options(loadeR.java.detected_version = extracted_fields[["Implementation-Version"]])
             extracted_fields
         }, error = function(e) {
-            packageStartupMessage("Could not read MANIFEST.MF via class loader:", e$message)
+            packageStartupMessage(e$message)
             NULL
         })
 
@@ -50,14 +65,12 @@
                 manifest_info[["Built-On"]]
             ))
         }
-
-    }
-
-    # Show the source of the netCDF-Java classpath used
-    cp_source <- getOption("loadeR.netcdf_java_classpath_source")
-    cp_msg <- getOption("loadeR.netcdf_java_classpath_msg")
-    if (!is.null(cp_source) && !is.null(cp_msg)) {
-        packageStartupMessage(sprintf("netCDF-Java CLASSPATH from %s: %s", cp_msg, cp_source))
+        # Show the source of the netCDF-Java classpath used
+        cp_entries <- getOption("loadeR.netcdf_java_classpath_entries")
+        cp_msg <- getOption("loadeR.netcdf_java_classpath_msg")
+        if (!is.null(cp_entries) && !is.null(cp_msg)) {
+            packageStartupMessage(sprintf("netCDF-Java CLASSPATH from %s: %s", cp_msg,  paste(cp_entries, collapse = .Platform$path.sep)))
+        } 
     }
     
     J("java.util.logging.Logger")$getLogger("")$setLevel(J("java.util.logging.Level")$SEVERE)
