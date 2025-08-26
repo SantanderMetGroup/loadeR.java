@@ -41,7 +41,7 @@ options(loadeR.netcdf_java_classpath = paste(
 library(loadeR.java)
 ```
 #### Example: Environment variable (persistent, default)
-```r
+```bash
 # Linux/macOS
 export LOADER_NETCDF_JAVA_CLASSPATH="/opt/netcdf-java/lib/*"
 R -q -e "library(loadeR.java)"
@@ -53,3 +53,15 @@ R -NoSave -e "library(loadeR.java)"
 
 #### Bundled fallback (no config)
 * Drop any required jars and directory into the java package directory.
+
+### NetCDF-Java Version Detection (MANIFEST.MF)
+
+On startup, **loadeR.java** tries to detect the `netCDF-Java` version from the JAR’s `MANIFEST.MF` file.  
+
+If you are using development directories or classpaths without a MANIFEST, the version cannot be detected automatically.  
+In that case, you can set it manually before loading the package:
+
+```r
+options(loadeR.java.forced_version = "5.9.0")
+library(loadeR.java)
+```
