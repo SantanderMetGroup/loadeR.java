@@ -29,43 +29,36 @@
       }
 
       # Determine classpath for netCDF-Java based on R option, environment variable, or fallback
-      cp_opt <- getOption("loadeR.netcdf_java_classpath", "")
-      cp_env <- Sys.getenv("LOADER_NETCDF_JAVA_CLASSPATH", "")
+      cp_opt <- getOption("loadeR.java_classpath", "")
+      cp_env <- Sys.getenv("LOADER_JAVA_CLASSPATH", "")
        
       cp_msg <- NULL
       cp_entries <- character()
-
-      # If both R option and environment variable are set, R option takes precedence
-      if (cp_opt != "" && cp_env != "" && cp_opt != cp_env) {
-            # Check if the user has enabled strict mode: if TRUE, stop on conflicting classpath values; if FALSE (default), just warn
-            if (getOption("loadeR.netcdf_java_classpath_strict", FALSE)) {
-                  stop("Conflicting netCDF-Java classpath: both R option and environment variable are set")
-            } else {
-                  warning("Conflicting netCDF-Java classpath: both R option and environment variable are set. Using R option value.")
-            }
-      }
+ 
       if (cp_opt != "") {
             # Use the classpath specified in the R option
-            cp_msg <- "R option loadeR.netcdf_java_classpath" 
-            cp_entries <- strsplit(cp_opt, .Platform$path.sep, fixed = TRUE)[[1]]
-      } else if (cp_env != "") {
+            cp_msg <- "R option loadeR.java_classpath" 
+            cp_entries <- c(cp_entries, strsplit(cp_opt, .Platform$path.sep, fixed = TRUE)[[1]])
+      } 
+      if (cp_env != "") {
             # Use the classpath specified in the environment variable
-            cp_msg <- "env LOADER_NETCDF_JAVA_CLASSPATH" 
-            cp_entries <- strsplit(cp_env, .Platform$path.sep, fixed = TRUE)[[1]]
-      } else {
-            # Use java package directory as fallback
-            cp_msg <- "bundled java package directory"
-            # Include all jar files in the java package directory 
-            java_path <- system.file("java", package = pkgname) 
-            jar_files <- list.files(java_path, pattern = "\\.jar$", full.names = TRUE)
-            # Include all directories in the java package directory 
-            all_entries <- list.files(java_path, full.names = TRUE)
-            dir_entries <- all_entries[file.info(all_entries)$isdir]
-            # Include the java package directory itself 
-            cp_entries <- c(java_path, jar_files, dir_entries)
-      }
+            cp_msg <- if (is.null(cp_msg)) "env LOADER_JAVA_CLASSPATH" else paste(cp_msg, "+ env LOADER_JAVA_CLASSPATH")
+            cp_entries <- c(cp_entries, strsplit(cp_env, .Platform$path.sep, fixed = TRUE)[[1]])
+      } 
+      # Use java package directory as fallback
+      cp_msg <- if (is.null(cp_msg)) "bundled java package directory" else paste(cp_msg, "+ bundled java package directory")
+      # Include all jar files in the java package directory 
+      java_path <- system.file("java", package = pkgname) 
+      jar_files <- list.files(java_path, pattern = "\\.jar$", full.names = TRUE)
+      # Include all zip files in the java package directory 
+      zip_files <- list.files(java_path, pattern = "\\.zip$", full.names = TRUE)
+      # Include all directories in the java package directory 
+      all_entries <- list.files(java_path, full.names = TRUE)
+      dir_entries <- all_entries[file.info(all_entries)$isdir]
+      cp_entries <- c(cp_entries, java_path, jar_files, zip_files, dir_entries)
+
       # Clean empty or whitespace entries
-      cp_entries <- unique(trimws(cp_entries))
+      cp_entries <- trimws(cp_entries)
       cp_entries <- cp_entries[cp_entries != ""]
 
       # Expand entries
@@ -82,5 +75,5 @@
             warning("JVM is already initialized; the netCDF-Java classpath was added at runtime (consider restarting R to apply it from startup).")
       }
       # Save classpath info for display when attaching the package
-      options(loadeR.netcdf_java_classpath_msg = cp_msg, loadeR.netcdf_java_classpath_entries = cp_entries)
+      options(loadeR.java_classpath_msg = cp_msg, loadeR.java_classpath_entries = cp_entries)
 }

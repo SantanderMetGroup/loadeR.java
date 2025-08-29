@@ -17,21 +17,21 @@ By default, **loadeR.java** will use the bundled JARs found in the java package 
 Advanced users can override this behavior to point to their own `netCDF-Java` setup (e.g., for development or production deployments).
 
 Classpath precedence:
-1. R option: `loadeR.netcdf_java_classpath`
-2. Environment variable: `LOADER_NETCDF_JAVA_CLASSPATH`
+1. R option: `loadeR.java_classpath`
+2. Environment variable: `LOADER_JAVA_CLASSPATH`
 3. Bundled fallback: java package directory
 
 Each method accepts one or more classpath entries, separated by the platform path separator (`:` on Linux/macOS, `;` on Windows). Wildcards (`*`) are supported.
 
 #### Example: Production (single JAR)
 ```r
-options(loadeR.netcdf_java_classpath = "/opt/netcdf-java/netcdfAll-5.9.0.jar")
+options(loadeR.java_classpath = "/opt/netcdf-java/netcdfAll-5.9.0.jar")
 library(loadeR.java)
 ```
 
 #### Example: Development (directories + jars)
 ```r
-options(loadeR.netcdf_java_classpath = paste(
+options(loadeR.java_classpath = paste(
   "~/dev/netcdf-java/cdm/build/classes/java/main",
   "~/dev/netcdf-java/cdm/build/resources/main",
   "~/dev/netcdf-java/grib/build/classes/java/main",
@@ -43,11 +43,11 @@ library(loadeR.java)
 #### Example: Environment variable (persistent, default)
 ```bash
 # Linux/macOS
-export LOADER_NETCDF_JAVA_CLASSPATH="/opt/netcdf-java/lib/*"
+export LOADER_JAVA_CLASSPATH="/opt/netcdf-java/lib/*"
 R -q -e "library(loadeR.java)"
 
 # Windows PowerShell
-$env:LOADER_NETCDF_JAVA_CLASSPATH = "C:\netcdf-java\lib\*"
+$env:LOADER_JAVA_CLASSPATH = "C:\netcdf-java\lib\*"
 R -NoSave -e "library(loadeR.java)"
 ```
 
@@ -58,10 +58,9 @@ R -NoSave -e "library(loadeR.java)"
 
 On startup, **loadeR.java** tries to detect the `netCDF-Java` version from the JAR’s `MANIFEST.MF` file.  
 
-If you are using development directories or classpaths without a MANIFEST, the version cannot be detected automatically.  
-In that case, you can set it manually before loading the package:
+If you are using development directories or classpaths without a MANIFEST, the version cannot be detected automatically. You can manually set the NetCDF Java Library version using an R option before loading the package:
 
 ```r
-options(loadeR.java.forced_version = "5.9.0")
+options(loadeR.java_forced_version = "5.9.0")
 library(loadeR.java)
 ```

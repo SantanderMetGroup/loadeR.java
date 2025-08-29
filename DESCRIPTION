@@ -13,8 +13,8 @@ Authors@R: as.person(c(
     "Joaquin Bedia <bediaj@unican.es> [aut, cre]",
     "Antonio S. Cofino <antonio.cofino@unican.es> [aut]",
     "Max Tuni <max@predictia.es> [ctb]",
-    "Manuel Vega <manuel.vega@unican.es> [ctb]"
-    "Maria Isabel de la Osa <mor427@alumnos.unican.es> [aut]",
+    "Manuel Vega <manuel.vega@unican.es> [ctb]",
+    "Maria Isabel de la Osa <mor427@alumnos.unican.es> [aut]"
     ))
 Maintainer: Joaquin Bedia <bediaj@unican.es>
 BugReports: https://github.com/SantanderMetGroup/loadeR.java/issues

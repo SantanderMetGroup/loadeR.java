@@ -15,8 +15,8 @@
         packageStartupMessage(sprintf("The maximum JVM heap space available is: %.2f GB", max_mem_gb))
         
         # Get forced netcdf version
-        forced <- getOption("loadeR.java.forced_version", "")
-
+        forced <- getOption("loadeR.java_forced_version", "")
+    
         # Use ClassLoader to access MANIFEST.MF
         manifest_info <- tryCatch({
             # Load NetcdfFile class loader
@@ -24,19 +24,7 @@
             class_loader <- rJava::.jcall(netcdf_class, "Ljava/lang/ClassLoader;", "getClassLoader")
             manifest_url <- rJava::.jcall(class_loader, "Ljava/net/URL;", "getResource", "META-INF/MANIFEST.MF")
 
-            if (rJava::is.jnull(manifest_url)) {
-                if (nzchar(forced)) {
-                    packageStartupMessage(sprintf(
-                        "NetCDF Java Library Forced Version: %s",
-                        forced
-                    ))
-                } else {
-                    packageStartupMessage(
-                        "NetCDF Java Library version could not be detected. You can set it manually via R option before loading the package"
-                    )
-                }
-                stop("MANIFEST.MF not found via NetcdfFile class loader")
-            }
+            if (rJava::is.jnull(manifest_url)) stop("MANIFEST.MF not found via NetcdfFile class loader")
 
             input_stream <- rJava::.jcall(manifest_url, "Ljava/io/InputStream;", "openStream")
             manifest <- rJava::.jnew("java/util/jar/Manifest", input_stream)
@@ -51,7 +39,7 @@
             names(extracted_fields) <- fields
 
             # Save netcdf version 
-            options(loadeR.java.detected_version = extracted_fields[["Implementation-Version"]])
+            options(loadeR.java_detected_version = extracted_fields[["Implementation-Version"]])
             extracted_fields
         }, error = function(e) {
             packageStartupMessage(e$message)
@@ -65,9 +53,21 @@
                 manifest_info[["Built-On"]]
             ))
         }
+
+        if (nzchar(forced)) {
+            warning(sprintf(
+                "NetCDF Java Library Forced Version: %s",
+                forced
+            ))
+        } else {
+            packageStartupMessage(
+                "You can manually set the NetCDF Java Library version using an R option before loading the package"
+            )
+        }
+        
         # Show the source of the netCDF-Java classpath used
-        cp_entries <- getOption("loadeR.netcdf_java_classpath_entries")
-        cp_msg <- getOption("loadeR.netcdf_java_classpath_msg")
+        cp_entries <- getOption("loadeR.java_classpath_entries")
+        cp_msg <- getOption("loadeR.java_classpath_msg")
         if (!is.null(cp_entries) && !is.null(cp_msg)) {
             packageStartupMessage(sprintf("netCDF-Java CLASSPATH from %s: %s", cp_msg,  paste(cp_entries, collapse = .Platform$path.sep)))
         } 
