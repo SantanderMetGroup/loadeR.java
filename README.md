@@ -11,36 +11,24 @@ options(java.parameters = "-Xmx4g") # Set maximum heap space to 4 GB
 library(loadeR.java)
 ```
 
-### Configuring the netCDF-Java Classpath
+### Configuring netCDF-Java classpath
 
-By default, **loadeR.java** will use the bundled JARs found in the java package directory.  
-Advanced users can override this behavior to point to their own `netCDF-Java` setup (e.g., for development or production deployments).
+By default, **loadeR.java** will use `netCDF-Java` JARs found in the java package directory. Users can point to their own `netCDF-Java` classpath, using a [netCDF-Java library](https://downloads.unidata.ucar.edu/netcdf-java/) installation.
 
-Classpath precedence:
+**loadeR.java** provides options for defining the `netCDF-Java` classpath, which are considered in the following order of precedence:
 1. R option: `loadeR.java_classpath`
 2. Environment variable: `LOADER_JAVA_CLASSPATH`
 3. Bundled fallback: java package directory
 
-Each method accepts one or more classpath entries, separated by the platform path separator (`:` on Linux/macOS, `;` on Windows). Wildcards (`*`) are supported.
+Each method accepts one or more classpath entries, separated by the platform path separator (`:` on Linux/macOS, `;` on Windows). Wildcards (`*`) are supported. In the case of using `*`, the order of precedence within the same option follows lexicographic order (ascending).
 
-#### Example: Production (single JAR)
+#### Example: R option
 ```r
 options(loadeR.java_classpath = "/opt/netcdf-java/netcdfAll-5.9.0.jar")
 library(loadeR.java)
 ```
-
-#### Example: Development (directories + jars)
-```r
-options(loadeR.java_classpath = paste(
-  "~/dev/netcdf-java/cdm/build/classes/java/main",
-  "~/dev/netcdf-java/cdm/build/resources/main",
-  "~/dev/netcdf-java/grib/build/classes/java/main",
-  "~/dev/netcdf-java/grib/build/resources/main",
-  sep = .Platform$path.sep
-))
-library(loadeR.java)
-```
-#### Example: Environment variable (persistent, default)
+ 
+#### Example: Environment variable 
 ```bash
 # Linux/macOS
 export LOADER_JAVA_CLASSPATH="/opt/netcdf-java/lib/*"
@@ -51,14 +39,14 @@ $env:LOADER_JAVA_CLASSPATH = "C:\netcdf-java\lib\*"
 R -NoSave -e "library(loadeR.java)"
 ```
 
-#### Bundled fallback (no config)
-* Drop any required jars and directory into the java package directory.
+#### Bundled fallback 
+* Drop any required JARs into the java package directory.
 
-### NetCDF-Java Version Detection (MANIFEST.MF)
+### Configuring netCDF-Java version
 
 On startup, **loadeR.java** tries to detect the `netCDF-Java` version from the JAR’s `MANIFEST.MF` file.  
 
-If you are using development directories or classpaths without a MANIFEST, the version cannot be detected automatically. You can manually set the NetCDF Java Library version using an R option before loading the package:
+If no `MANIFEST.MF` is found, the version cannot be detected automatically. You can manually set the `netCDF-Java` library version using an R option before loading the package:
 
 ```r
 options(loadeR.java_forced_version = "5.9.0")

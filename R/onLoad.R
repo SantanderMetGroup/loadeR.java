@@ -47,15 +47,14 @@
       } 
       # Use java package directory as fallback
       cp_msg <- if (is.null(cp_msg)) "bundled java package directory" else paste(cp_msg, "+ bundled java package directory")
-      # Include all jar files in the java package directory 
+      # Include jar/zip files and first-level subdirectories from java package directory
       java_path <- system.file("java", package = pkgname) 
-      jar_files <- list.files(java_path, pattern = "\\.jar$", full.names = TRUE)
-      # Include all zip files in the java package directory 
-      zip_files <- list.files(java_path, pattern = "\\.zip$", full.names = TRUE)
-      # Include all directories in the java package directory 
-      all_entries <- list.files(java_path, full.names = TRUE)
-      dir_entries <- all_entries[file.info(all_entries)$isdir]
-      cp_entries <- c(cp_entries, java_path, jar_files, zip_files, dir_entries)
+      java_entries <- c(
+            list.files(java_path, pattern = "\\.(jar|zip)$", full.names = TRUE), 
+            setdiff(list.dirs(java_path, recursive = FALSE, full.names = TRUE), java_path)
+      )
+      java_entries <- sort(java_entries, decreasing = FALSE)
+      cp_entries <- c(cp_entries, java_path, java_entries)
 
       # Clean empty or whitespace entries
       cp_entries <- trimws(cp_entries)

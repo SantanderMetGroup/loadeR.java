@@ -20,7 +20,19 @@
         # Use ClassLoader to access MANIFEST.MF
         manifest_info <- tryCatch({
             # Load NetcdfFile class loader
-            netcdf_class <- rJava::.jfindClass("ucar/nc2/NetcdfFile")
+            netcdf_class <- tryCatch(rJava::.jfindClass("ucar/nc2/NetcdfFile"), error = function(e) NULL)
+
+            if (is.null(netcdf_class)) {
+                stop(
+                    paste(
+                        "NetCDF Java Classes not found. Set the classpath before loading the package:",
+                        'options(loadeR.java_classpath = "/opt/netcdf-java/netcdfAll-5.9.0.jar")',
+                        "library(loadeR.java)",
+                        sep = "\n"
+                    )
+                )
+            }
+            
             class_loader <- rJava::.jcall(netcdf_class, "Ljava/lang/ClassLoader;", "getClassLoader")
             manifest_url <- rJava::.jcall(class_loader, "Ljava/net/URL;", "getResource", "META-INF/MANIFEST.MF")
 
@@ -61,7 +73,12 @@
             ))
         } else {
             packageStartupMessage(
-                "You can manually set the NetCDF Java Library version using an R option before loading the package"
+                paste(
+                    "You can manually set the NetCDF Java Library version before loading the package:",
+                    'options(loadeR.java_forced_version = "X.Y.Z")',
+                    "library(loadeR.java)",
+                    sep = "\n"
+                )
             )
         }
         
