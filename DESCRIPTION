@@ -11,9 +11,10 @@ Date: 2025-08-12
 Authors@R: as.person(c(
     "Santander Meteorology Group <http://meteo.unican.es> [cph]",
     "Joaquin Bedia <bediaj@unican.es> [aut, cre]",
-    "Antonio Cofino <antonio.cofino@unican.es> [aut]",
+    "Antonio S. Cofino <antonio.cofino@unican.es> [aut]",
     "Max Tuni <max@predictia.es> [ctb]",
-    "Manuel Vega <manuel.vega@unican.es> [ctb]"
+    "Manuel Vega <manuel.vega@unican.es> [ctb]",
+    "Maria Isabel de la Osa <mor427@alumnos.unican.es> [aut]"
     ))
 Maintainer: Joaquin Bedia <bediaj@unican.es>
 BugReports: https://github.com/SantanderMetGroup/loadeR.java/issues

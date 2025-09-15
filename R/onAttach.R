@@ -13,11 +13,26 @@
         max_mem_bytes <- rJava::.jcall(runtime, "J", "maxMemory")
         max_mem_gb <- round(max_mem_bytes / (1024^3), 2)
         packageStartupMessage(sprintf("The maximum JVM heap space available is: %.2f GB", max_mem_gb))
-
+        
+        # Get forced netcdf version
+        forced <- getOption("loadeR.java_forced_version", "")
+    
         # Use ClassLoader to access MANIFEST.MF
         manifest_info <- tryCatch({
             # Load NetcdfFile class loader
-            netcdf_class <- rJava::.jfindClass("ucar/nc2/NetcdfFile")
+            netcdf_class <- tryCatch(rJava::.jfindClass("ucar/nc2/NetcdfFile"), error = function(e) NULL)
+
+            if (is.null(netcdf_class)) {
+                stop(
+                    paste(
+                        "NetCDF Java Classes not found. Set the classpath before loading the package:",
+                        'options(loadeR.java_classpath = "/opt/netcdf-java/netcdfAll-5.9.0.jar")',
+                        "library(loadeR.java)",
+                        sep = "\n"
+                    )
+                )
+            }
+            
             class_loader <- rJava::.jcall(netcdf_class, "Ljava/lang/ClassLoader;", "getClassLoader")
             manifest_url <- rJava::.jcall(class_loader, "Ljava/net/URL;", "getResource", "META-INF/MANIFEST.MF")
 
@@ -35,11 +50,11 @@
             })
             names(extracted_fields) <- fields
 
-            # Save extracted fields in package options
-            options(loadeR.java.manifest = extracted_fields)
+            # Save netcdf version 
+            options(loadeR.java_detected_version = extracted_fields[["Implementation-Version"]])
             extracted_fields
         }, error = function(e) {
-            packageStartupMessage("Could not read MANIFEST.MF via class loader:", e$message)
+            packageStartupMessage(e$message)
             NULL
         })
 
@@ -51,7 +66,30 @@
             ))
         }
 
+        if (nzchar(forced)) {
+            warning(sprintf(
+                "NetCDF Java Library Forced Version: %s",
+                forced
+            ))
+        } else {
+            packageStartupMessage(
+                paste(
+                    "You can manually set the NetCDF Java Library version before loading the package:",
+                    'options(loadeR.java_forced_version = "X.Y.Z")',
+                    "library(loadeR.java)",
+                    sep = "\n"
+                )
+            )
+        }
+        
+        # Show the source of the netCDF-Java classpath used
+        cp_entries <- getOption("loadeR.java_classpath_entries")
+        cp_msg <- getOption("loadeR.java_classpath_msg")
+        if (!is.null(cp_entries) && !is.null(cp_msg)) {
+            packageStartupMessage(sprintf("netCDF-Java CLASSPATH from %s: %s", cp_msg,  paste(cp_entries, collapse = .Platform$path.sep)))
+        } 
     }
+    
     J("java.util.logging.Logger")$getLogger("")$setLevel(J("java.util.logging.Level")$SEVERE)
 } 
 
