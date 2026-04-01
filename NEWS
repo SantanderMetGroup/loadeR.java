@@ -9,3 +9,6 @@
  * Class loader support for reading JAR metadata at load time.
  * Add test for Java-R interface functions (javaCalendarDate2rPOSIXlt, javaString2rChar).
  * Updated documentation with memory configuration instructions.
+## v1.2.2
+* Fix JVM initialization when `java.parameters` is unset by removing empty entries before calling `rJava::.jinit()`.
+* Improves compatibility with R 4.4 during package load/install tests.

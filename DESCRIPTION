@@ -6,8 +6,8 @@ Suggests:
     testthat (>= 3.0.0)
 Type: Package
 Title: Loader of the NetCDF Java Library in R
-Version: 1.2.1
-Date: 2025-08-12
+Version: 1.2.2
+Date: 2026-04-01
 Authors@R: as.person(c(
     "Santander Meteorology Group <http://meteo.unican.es> [cph]",
     "Joaquin Bedia <bediaj@unican.es> [aut, cre]",
