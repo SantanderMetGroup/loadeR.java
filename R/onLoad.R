@@ -2,7 +2,10 @@
 
 .onLoad <- function(libname, pkgname) {
       # Get the current java.parameters
-      current_params <- getOption("java.parameters", default = "")
+      #current_params <- getOption("java.parameters", default = "")
+      current_params <- getOption("java.parameters", default = character())
+      current_params <- trimws(current_params)
+      current_params <- current_params[nzchar(current_params)]
       
       # Check if "-Xmx" is already present
       xmx_index <- grep("-Xmx[0-9]+[mMgG]", current_params)
